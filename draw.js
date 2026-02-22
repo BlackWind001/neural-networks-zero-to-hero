@@ -1,14 +1,19 @@
 const graphviz = require('graphviz');
+const fs = require('fs');
 
-module.exports = function drawDot(root) {
+function drawDot(root) {
+  const outputDir = 'output';
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir);
+  }
+
   const g = graphviz.digraph('G');
   
-  g.set('rankdir', 'LR'); // Left to right layout, same as Karpathy's
+  g.set('rankdir', 'LR');
 
   const nodes = new Set();
   const edges = new Set();
 
-  // Topological traversal to collect all nodes and edges
   function build(value) {
     if (nodes.has(value)) return;
     nodes.add(value);
@@ -21,7 +26,6 @@ module.exports = function drawDot(root) {
 
   build(root);
 
-  // For each value node, add a record node showing label, data, and grad
   nodes.forEach(value => {
     const nodeId = String(value.id);
 
@@ -30,7 +34,6 @@ module.exports = function drawDot(root) {
       shape: 'record'
     });
 
-    // If this value was produced by an operation, add an op node
     if (value.op) {
       const opNodeId = nodeId + value.op;
       g.addNode(opNodeId, { label: value.op });
@@ -38,12 +41,13 @@ module.exports = function drawDot(root) {
     }
   });
 
-  // Add edges, pointing into the op node rather than directly to the value node
   edges.forEach(([parent, child]) => {
     const childOpNodeId = String(child.id) + child.op;
     g.addEdge(String(parent.id), childOpNodeId);
   });
 
-  g.render('png', 'graph.png');
-  console.log('Graph saved to graph.png');
+  g.render('png', `${outputDir}/graph.png`);
+  console.log(`Graph saved to ${outputDir}/graph.png`);
 }
+
+module.exports = drawDot;
