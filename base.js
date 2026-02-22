@@ -12,7 +12,7 @@ function calculateMSE (groundTruths /** i.e. the expected values */, predictions
     const {value: prediction} = Value.getOther(predictions[i]);
     const currentLoss= groundTruth.sub(prediction).pow(2);
     
-    console.log(groundTruth.data, prediction.data, currentLoss.data);
+    // console.log(groundTruth.data, prediction.data, currentLoss.data);
     
     loss = loss.add(currentLoss);
   }
@@ -111,22 +111,32 @@ class Value {
       entry.backward();
     }
   }
+  
+  toString () {
+    return `Value(data: ${this.data}, grad: ${this.grad}, label: ${this.label})`;
+  }
 }
 
 class Neuron {
-  static weightCounter = 0;
-  static biasCounter = 0;
+  static neuronCounter = 0;
   weights = [];
   bias;
   constructor (noOfInputs) {
+    let weightCounter = 0;
     this.weights = Array.from({ length: noOfInputs }, () => {
       const weight = new Value(getRandomValue());
-      weight.label = "w" + Neuron.weightCounter++;
+      weight.label = "W" + weightCounter++ + "(N" + Neuron.neuronCounter + ")";
       return weight;
     });
     
     this.bias = new Value(getRandomValue());
-    this.bias.label = "b" + Neuron.biasCounter++;
+    this.bias.label = "B" + "(N" + Neuron.neuronCounter + ")";
+    
+    Neuron.neuronCounter++;
+  }
+  
+  parameters () {
+    return [...this.weights, this.bias];
   }
   
   exec (inputs) {
@@ -149,6 +159,10 @@ class Layer {
     });
   }
   
+  parameters () {
+    return this.neurons.map((neuron) => neuron.parameters()).flat();
+  }
+  
   // Gives an array of outputs from each neuron in the layer
   exec (inputs) {
     const neuronOutput = this.neurons.map((neuron) => neuron.exec(inputs));
@@ -167,6 +181,10 @@ class MLP {
       
       return layer;
     });
+  }
+  
+  parameters () {
+    return this.layers.map((layer) => layer.parameters()).flat();
   }
   
   exec (input) {
