@@ -36,8 +36,7 @@ function forwardPass () {
 function descent () {
   const parameters = mlp.parameters();
   parameters.forEach((param) => {
-    // BUG: Unable to find out why removing the negative sign actually decreases the loss
-    param.data += (-0.01)*param.grad;
+    param.data += (-0.05)*param.grad;
   });
 }
 
@@ -50,10 +49,10 @@ function resetGrads () {
 
 function train () {
   for (let i = 0; i < 20; i++) {
-    resetGrads();
     forwardPass();
+    resetGrads();
     loss.backwardPass(); // hydrates the gradient values.
     descent();
-    console.log('Loss', `${loss}`);
+    console.log(`i=${i}`, `${loss}`);
   }
 }

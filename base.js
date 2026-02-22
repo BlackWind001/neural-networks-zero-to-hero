@@ -67,14 +67,14 @@ class Value {
     return output;
   }
   
-  sub (input) {
-    let { data: otherData, value: other } = Value.getOther(input);
-    const output = new Value(this.data - otherData, [this, other], '-')
-    
-    output.backward = () => {
-      this.grad += 1*output.grad;
-      other.grad += 1*output.grad;
-    }
+  neg () {
+    return this.mul(-1);
+  }
+  
+  sub(input) {
+    let { value: other } = Value.getOther(input);
+    const output = this.add(other.neg());
+    output.op = '-';
     
     return output;
   }
